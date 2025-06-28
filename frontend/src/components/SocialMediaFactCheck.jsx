@@ -14,7 +14,7 @@ const SocialMediaFactCheck = () => {
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         setError("Please select a valid image file");
         return;
       }
@@ -42,55 +42,69 @@ const SocialMediaFactCheck = () => {
       setError("Please select an image first");
       return;
     }
+
     setLoading(true);
     setError("");
+    setResult(null);
+
     try {
+      // Step 1: Upload image to OCR endpoint (8060)
       const formData = new FormData();
-      formData.append('image', selectedImage);
-      const response = await axios.post("http://localhost:8000/image-factcheck", formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      formData.append("image", selectedImage);
+
+      const ocrRes = await axios.post("http://localhost:8060/extract-text/", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
+
+      const extractedText = ocrRes.data.extracted_text;
+
+      // Step 2: Send extracted text to fact-check endpoint (8000)
+      const factRes = await axios.post("http://localhost:8000/factcheck", {
+        text: extractedText,
+      });
+
       const structuredResult = {
-        credibility_score: response.data.credibility_score || 0,
-        explanation: response.data.explanation || "No explanation available.",
-        source: response.data.source || "",
-        verdict: response.data.verdict || "Unknown",
+        credibility_score: factRes.data.credibility_score || 0,
+        explanation: factRes.data.explanation || "No explanation available.",
+        source: factRes.data.source || "",
+        verdict: factRes.data.verdict || "Unknown",
         error: null,
       };
+
       setResult(structuredResult);
-    } catch (error) {
-      console.error("Image fact-check failed:", error);
+    } catch (err) {
+      console.error("Fact-check process failed:", err);
       setResult({
         credibility_score: 0,
-        explanation: "Image fact-check failed. Please try again.",
+        explanation: "Something went wrong during fact-checking.",
         source: "",
         verdict: "Error",
-        error: "Image fact-check failed. Please try again.",
+        error: "Fact-check failed. Please try again.",
       });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleBackToHome = () => {
-    navigate("/");
-  };
+  const handleBackToHome = () => navigate("/");
 
   const resultData = result && !result.error
     ? {
         summary: result.explanation,
         status: result.verdict,
-        confidence: '${result.credibility_score}%',
+        confidence: `${result.credibility_score}%`,
         source: result.source,
-        falsePercentage: result.verdict === "False" 
-          ? result.credibility_score 
-          : result.verdict === "True" 
-            ? 100 - result.credibility_score 
+        falsePercentage:
+          result.verdict === "False"
+            ? result.credibility_score
+            : result.verdict === "True"
+            ? 100 - result.credibility_score
             : 50,
-        truePercentage: result.verdict === "True" 
-          ? result.credibility_score 
-          : result.verdict === "False" 
-            ? 100 - result.credibility_score 
+        truePercentage:
+          result.verdict === "True"
+            ? result.credibility_score
+            : result.verdict === "False"
+            ? 100 - result.credibility_score
             : 50,
       }
     : {
@@ -130,14 +144,6 @@ const SocialMediaFactCheck = () => {
             transition: "all 0.2s ease",
             marginBottom: "2rem",
           }}
-          onMouseEnter={(e) => {
-            e.target.style.backgroundColor = "#374151";
-            e.target.style.color = "white";
-          }}
-          onMouseLeave={(e) => {
-            e.target.style.backgroundColor = "transparent";
-            e.target.style.color = "#9CA3AF";
-          }}
         >
           ← Back to Home
         </button>
@@ -164,73 +170,60 @@ const SocialMediaFactCheck = () => {
               style={{ display: "none" }}
               id="image-upload"
             />
-            <label
-              htmlFor="image-upload"
-              style={{
-                backgroundColor: "#16A34A",
-                color: "white",
-                padding: "0.75rem 1.5rem",
-                borderRadius: "0.375rem",
-                cursor: "pointer",
-                display: "inline-block",
-              }}
-            >
+            <label htmlFor="image-upload" style={{
+              backgroundColor: "#16A34A",
+              color: "white",
+              padding: "0.75rem 1.5rem",
+              borderRadius: "0.375rem",
+              cursor: "pointer",
+              display: "inline-block",
+            }}>
               Choose Image
             </label>
           </div>
         ) : (
           <div style={{ textAlign: "center" }}>
             <div style={{ position: "relative", display: "inline-block" }}>
-              <img
-                src={imagePreview}
-                alt="Preview"
-                style={{
-                  maxWidth: "100%",
-                  maxHeight: "400px",
-                  borderRadius: "0.5rem",
-                  border: "2px solid #374151",
-                }}
-              />
-              <button
-                onClick={removeImage}
-                style={{
-                  position: "absolute",
-                  top: "-10px",
-                  right: "-10px",
-                  backgroundColor: "#DC2626",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "50%",
-                  width: "30px",
-                  height: "30px",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-              >
+              <img src={imagePreview} alt="Preview" style={{
+                maxWidth: "100%",
+                maxHeight: "400px",
+                borderRadius: "0.5rem",
+                border: "2px solid #374151",
+              }} />
+              <button onClick={removeImage} style={{
+                position: "absolute",
+                top: "-10px",
+                right: "-10px",
+                backgroundColor: "#DC2626",
+                color: "white",
+                border: "none",
+                borderRadius: "50%",
+                width: "30px",
+                height: "30px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}>
                 <X size={16} />
               </button>
             </div>
+
             <div style={{ marginTop: "1rem" }}>
-              <button
-                onClick={handleFactCheck}
-                disabled={loading}
-                style={{
-                  backgroundColor: "#16A34A",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "0.375rem",
-                  padding: "0.75rem 2rem",
-                  fontSize: "1rem",
-                  cursor: loading ? "not-allowed" : "pointer",
-                  opacity: loading ? 0.5 : 1,
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "0.5rem",
-                  margin: "0 auto",
-                }}
-              >
+              <button onClick={handleFactCheck} disabled={loading} style={{
+                backgroundColor: "#16A34A",
+                color: "white",
+                border: "none",
+                borderRadius: "0.375rem",
+                padding: "0.75rem 2rem",
+                fontSize: "1rem",
+                cursor: loading ? "not-allowed" : "pointer",
+                opacity: loading ? 0.5 : 1,
+                display: "flex",
+                alignItems: "center",
+                gap: "0.5rem",
+                margin: "0 auto",
+              }}>
                 {loading ? (
                   <>
                     <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
@@ -262,12 +255,12 @@ const SocialMediaFactCheck = () => {
 
         {loading && (
           <div style={{ marginTop: "2rem", textAlign: "center", color: "white" }}>
-            <div style={{ 
-              width: "40px", 
-              height: "40px", 
-              border: "4px solid #374151", 
-              borderTop: "4px solid #16A34A", 
-              borderRadius: "50%", 
+            <div style={{
+              width: "40px",
+              height: "40px",
+              border: "4px solid #374151",
+              borderTop: "4px solid #16A34A",
+              borderRadius: "50%",
               animation: "spin 1s linear infinite",
               margin: "0 auto 1rem"
             }} />
@@ -293,62 +286,10 @@ const SocialMediaFactCheck = () => {
                 </a>
               </p>
             )}
-
-            <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center", position: "relative" }}>
-              <svg width="200" height="200" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="100" cy="100" r={radius} fill="none" stroke="#374151" strokeWidth="12" />
-                <circle 
-                  cx="100" 
-                  cy="100" 
-                  r={radius} 
-                  fill="none" 
-                  stroke="#DC2626" 
-                  strokeWidth="12"
-                  strokeDasharray={'${falseDash} ${circumference}'} 
-                />
-                <circle 
-                  cx="100" 
-                  cy="100" 
-                  r={radius} 
-                  fill="none" 
-                  stroke="#16A34A" 
-                  strokeWidth="12"
-                  strokeDasharray={'${trueDash} ${circumference}'} 
-                  strokeDashoffset={-falseDash} 
-                />
-              </svg>
-              
-              <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                textAlign: "center",
-                color: "white"
-              }}>
-                <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
-                  {resultData.falsePercentage}%
-                </div>
-                <div style={{ fontSize: "0.875rem", color: "#DC2626" }}>
-                  False
-                </div>
-              </div>
-            </div>
-
-            <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "2rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: "12px", height: "12px", backgroundColor: "#DC2626", borderRadius: "50%" }} />
-                <span>False ({resultData.falsePercentage}%)</span>
-              </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: "12px", height: "12px", backgroundColor: "#16A34A", borderRadius: "50%" }} />
-                <span>True ({resultData.truePercentage}%)</span>
-              </div>
-            </div>
           </div>
         )}
       </div>
-      
+
       <style>
         {`
           @keyframes spin {
