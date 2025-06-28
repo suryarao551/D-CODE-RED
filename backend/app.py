@@ -38,9 +38,7 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 llm = ChatOllama(model="gemma2:9b")
 
 prompt_template = PromptTemplate.from_template("""
-[28/06/25, 10:09:56 PM] Prathamesh Patil: guysss
-[28/06/25, 10:10:07 PM] Prathamesh Patil: prompt template hai na
-[28/06/25, 10:10:09 PM] Prathamesh Patil: You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness by combining your own up-to-date knowledge with the provided context from multiple news sources.
+You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness by combining your own up-to-date knowledge with the provided context from multiple news sources.
 
 You must use both:
 •⁠  ⁠Your general world knowledge and understanding of current events.
