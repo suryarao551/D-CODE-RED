@@ -129,39 +129,32 @@ pip install fastapi uvicorn python-dotenv google-generativeai requests
 uvicorn main:app --reload --port 8001
 ```
 
-#### Emotion API
+#### Emotion and Voice API
 ```bash
 cd emotion_api
 pip install fastapi uvicorn transformers torch
-uvicorn main:app --reload --port 8002
+uvicorn main:app --reload --port 8030
 ```
 
 #### Propaganda API
 ```bash
 cd propaganda_api
 pip install fastapi uvicorn requests
-uvicorn main:app --reload --port 8003
+uvicorn main:app --reload --port 8040
 ```
 
 #### Toxic API
 ```bash
 cd toxic_api
 pip install fastapi uvicorn transformers torch
-uvicorn main:app --reload --port 8004
-```
-
-#### Voice API
-```bash
-cd voice_api
-pip install fastapi uvicorn transformers torch openai-whisper
-uvicorn main:app --reload --port 8005
+uvicorn main:app --reload --port 8050
 ```
 
 #### Image API
 ```bash
 cd image_api
 pip install fastapi uvicorn easyocr opencv-python numpy
-uvicorn main:app --reload --port 8006
+uvicorn main:app --reload --port 8060
 ```
 
 ### 4. Environment Variables
@@ -196,11 +189,10 @@ ollama pull gemma2:2b
 ### API Endpoints
 - **Main Backend**: `http://localhost:8000`
 - **Chatbot API**: `http://localhost:8001`
-- **Emotion API**: `http://localhost:8002`
-- **Propaganda API**: `http://localhost:8003`
-- **Toxic API**: `http://localhost:8004`
-- **Voice API**: `http://localhost:8005`
-- **Image API**: `http://localhost:8006`
+- **Propaganda API**: `http://localhost:8040`
+- **Toxic API**: `http://localhost:8050`
+- **Voice and Emotion API**: `http://localhost:8030`
+- **Image API**: `http://localhost:8060`
 
 ### Frontend Configuration
 Update API endpoints in `frontend/src/components/` files to match your backend URLs.
@@ -210,7 +202,7 @@ Update API endpoints in `frontend/src/components/` files to match your backend U
 ### Web Application
 1. Start all backend services
 2. Start the frontend application
-3. Navigate to `http://localhost:5173`
+3. Navigate to `http://localhost:8080`
 4. Use the various analysis tools:
    - **Fact-Check**: Paste news text or URL for verification
    - **Sentiment Analysis**: Analyze emotions in text
@@ -236,14 +228,14 @@ curl -X POST "http://localhost:8000/factcheck" \
 
 #### Sentiment Analysis
 ```bash
-curl -X POST "http://localhost:8002/predict" \
+curl -X POST "http://localhost:8030/predict" \
   -H "Content-Type: application/json" \
   -d '{"text": "Your text here"}'
 ```
 
 #### Propaganda Detection
 ```bash
-curl -X POST "http://localhost:8003/detect_propaganda" \
+curl -X POST "http://localhost:8040/detect_propaganda" \
   -H "Content-Type: application/json" \
   -d '{"data": "Your text here"}'
 ```
