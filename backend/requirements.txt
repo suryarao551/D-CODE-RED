@@ -20,7 +20,8 @@ langchain-community
 langchain-core
 langchain-huggingface
 langchain-google-genai
-
+langchain-ollama
+huggingface-hub
 # Sentence transformer for embeddings
 sentence-transformers
 
