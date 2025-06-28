@@ -16,24 +16,26 @@ const PropagandaAnalysis = () => {
     setShowResults(false);
 
     try {
-      const [propagandaRes, toxicityRes] = await Promise.all([
-        axios.post("http://localhost:8040/proxy/propaganda", { text }),
+      const [propagandaRes] = await Promise.all([
+        axios.post("http://localhost:8040/detect_propaganda",  { data: text }),
         axios.post("http://localhost:8050/analyze-toxicity", { text }),
       ]);
 
       const propaganda = propagandaRes.data;
       const toxicity = toxicityRes.data;
+      console.log("Raw propaganda response:", propagandaRes);
 
       const processedResult = {
-        isPropaganda: propaganda.label === "propaganda",
+        isPropaganda: propaganda === "propagandistic",
         confidence: Math.round(parseFloat(propaganda.score) * 100),
         reasoning:
-          propaganda.label === "propaganda"
-            ? "The text shows indicators of propaganda based on Tanbih's linguistic analysis."
+          propaganda === "propagandistic"
+            ? "The text shows indicators of propaganda."
             : "The text does not exhibit strong markers of propaganda.",
       };
 
       setPropagandaResult(processedResult);
+      console.log("Propaganda Result:", processedResult);
       setToxicityPercentage(toxicity.toxicity_score);
       setToxicityExplanation(toxicity.label);
       setShowResults(true);
@@ -125,9 +127,7 @@ const PropagandaAnalysis = () => {
                 <div style={{ fontSize: "1.5rem", fontWeight: "600", color: propagandaResult.isPropaganda ? "#DC2626" : "#16A34A", marginBottom: "1rem" }}>
                   {propagandaResult.isPropaganda ? "Propaganda Detected" : "No Propaganda"}
                 </div>
-                <div style={{ color: "#9CA3AF", fontSize: "1rem", marginBottom: "1.5rem" }}>
-                  Confidence: {propagandaResult.confidence}%
-                </div>
+
                 <div style={{ backgroundColor: "#111827", padding: "1rem", borderRadius: "0.375rem", border: "1px solid #374151" }}>
                   <p style={{ color: "#D1D5DB", fontSize: "0.875rem", lineHeight: 1.6, margin: 0 }}>
                     {propagandaResult.reasoning}

@@ -38,7 +38,13 @@ embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-
 llm = ChatOllama(model="gemma2:2b")
 
 prompt_template = PromptTemplate.from_template("""
-You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness using the provided context from multiple news sources.
+[28/06/25, 10:09:56 PM] Prathamesh Patil: guysss
+[28/06/25, 10:10:07 PM] Prathamesh Patil: prompt template hai na
+[28/06/25, 10:10:09 PM] Prathamesh Patil: You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness by combining your own up-to-date knowledge with the provided context from multiple news sources.
+
+You must use both:
+•⁠  ⁠Your general world knowledge and understanding of current events.
+•⁠  ⁠The content provided in the "Context" section.
 
 ---
 
@@ -50,15 +56,15 @@ Context:
 
 ---
 
-Respond in exactly the following structured format *without adding extra text or labels*. Each field must be on a new line, and no field should contain information from other fields.
+Respond in exactly the following structured format without adding extra text or labels. Each field must be on a new line, and no field should contain information from other fields.
 
 ---
 
 Verdict: [True or False]
 
-Explanation: A clear, neutral, 7-8 line explanation of why the claim is true or false. Do NOT mention specific sources, percentages, or URLs here. Do NOT include the Credibility Score here.
+Explanation: A clear, neutral, 7-8 line explanation of why the claim is true or false, based on both your own knowledge and the context provided. Do NOT mention specific sources, percentages, or URLs here. Do NOT include the Credibility Score here.
 
-Source: A single direct link to the most relevant article (only the URL, no title or description).
+Source: A single direct link to the most relevant article from context or your knowledge(only the URL, no title or description).
 
 Credibility_Score: A number from 0 to 100 representing your confidence in the credibility of the source (just the number, no % sign, no explanation).
 """)
