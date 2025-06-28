@@ -5,7 +5,6 @@ const Header = ({ onNavigationChange, currentPage }) => {
   const [activeLink, setActiveLink] = useState(currentPage || "HOME");
   const [isFactCheckDropdownOpen, setIsFactCheckDropdownOpen] = useState(false);
 
-  
   useEffect(() => {
     setActiveLink(currentPage || "HOME");
   }, [currentPage]);
@@ -42,6 +41,11 @@ const Header = ({ onNavigationChange, currentPage }) => {
 
   const handleSentimentAnalysisClick = () => {
     handleNavClick("SENTIMENT_ANALYSIS");
+    setIsFactCheckDropdownOpen(false);
+  };
+
+  const handlePropagandaAnalysisClick = () => {
+    handleNavClick("PROPAGANDA_ANALYSIS");
     setIsFactCheckDropdownOpen(false);
   };
 
@@ -83,6 +87,7 @@ const Header = ({ onNavigationChange, currentPage }) => {
             </span>
           </div>
 
+          {/* Navigation */}
           <nav
             style={{
               display: "flex",
@@ -101,11 +106,12 @@ const Header = ({ onNavigationChange, currentPage }) => {
                         color:
                           item.name === activeLink ||
                           (item.name === "FACT CHECK" &&
-                            activeLink === "SENTIMENT_ANALYSIS")
+                            (activeLink === "SENTIMENT_ANALYSIS" ||
+                              activeLink === "PROPAGANDA_ANALYSIS"))
                             ? "#DC2626"
                             : activeLink === "NEWS PAPERS"
-                              ? "#1F2937"
-                              : "white",
+                            ? "#1F2937"
+                            : "white",
                         fontSize: "0.875rem",
                         fontWeight: "500",
                         padding: "0.5rem 0",
@@ -114,9 +120,10 @@ const Header = ({ onNavigationChange, currentPage }) => {
                         alignItems: "center",
                         gap: "0.25rem",
                         borderBottom:
-                          activeLink === item.name ||
+                          item.name === activeLink ||
                           (item.name === "FACT CHECK" &&
-                            activeLink === "SENTIMENT_ANALYSIS")
+                            (activeLink === "SENTIMENT_ANALYSIS" ||
+                              activeLink === "PROPAGANDA_ANALYSIS"))
                             ? "2px solid #DC2626"
                             : "none",
                         transition: "color 0.2s ease",
@@ -127,11 +134,12 @@ const Header = ({ onNavigationChange, currentPage }) => {
                     >
                       {activeLink === "SENTIMENT_ANALYSIS"
                         ? "Sentiment Analysis"
+                        : activeLink === "PROPAGANDA_ANALYSIS"
+                        ? "Propaganda Analysis"
                         : item.name}
                       <ChevronDown size={16} />
                     </button>
 
-                
                     {isFactCheckDropdownOpen && (
                       <div
                         style={{
@@ -150,67 +158,44 @@ const Header = ({ onNavigationChange, currentPage }) => {
                           zIndex: 100,
                         }}
                       >
+                        {/* Fact Check */}
                         <button
-                          style={{
-                            backgroundColor: "transparent",
-                            border: "none",
-                            color:
-                              activeLink === "NEWS PAPERS"
-                                ? "#1F2937"
-                                : "white",
-                            fontSize: "0.875rem",
-                            fontWeight: "400",
-                            padding: "0.75rem 1rem",
-                            cursor: "pointer",
-                            width: "100%",
-                            textAlign: "left",
-                            transition: "background-color 0.2s ease",
-                          }}
+                          style={dropdownItemStyle(activeLink)}
                           onClick={handleFactCheckClick}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#DC2626";
-                            e.target.style.color = "white";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "transparent";
-                            e.target.style.color =
-                              activeLink === "NEWS PAPERS"
-                                ? "#1F2937"
-                                : "white";
-                          }}
+                          onMouseEnter={(e) =>
+                            applyHoverStyle(e, activeLink, true)
+                          }
+                          onMouseLeave={(e) =>
+                            applyHoverStyle(e, activeLink, false)
+                          }
                         >
                           Fact Check
                         </button>
+                        {/* Sentiment Analysis */}
                         <button
-                          style={{
-                            backgroundColor: "transparent",
-                            border: "none",
-                            color:
-                              activeLink === "NEWS PAPERS"
-                                ? "#1F2937"
-                                : "white",
-                            fontSize: "0.875rem",
-                            fontWeight: "400",
-                            padding: "0.75rem 1rem",
-                            cursor: "pointer",
-                            width: "100%",
-                            textAlign: "left",
-                            transition: "background-color 0.2s ease",
-                          }}
+                          style={dropdownItemStyle(activeLink)}
                           onClick={handleSentimentAnalysisClick}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = "#DC2626";
-                            e.target.style.color = "white";
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = "transparent";
-                            e.target.style.color =
-                              activeLink === "NEWS PAPERS"
-                                ? "#1F2937"
-                                : "white";
-                          }}
+                          onMouseEnter={(e) =>
+                            applyHoverStyle(e, activeLink, true)
+                          }
+                          onMouseLeave={(e) =>
+                            applyHoverStyle(e, activeLink, false)
+                          }
                         >
                           Sentiment Analysis
+                        </button>
+                        {/* Propaganda Analysis */}
+                        <button
+                          style={dropdownItemStyle(activeLink)}
+                          onClick={handlePropagandaAnalysisClick}
+                          onMouseEnter={(e) =>
+                            applyHoverStyle(e, activeLink, true)
+                          }
+                          onMouseLeave={(e) =>
+                            applyHoverStyle(e, activeLink, false)
+                          }
+                        >
+                          Propaganda Analysis
                         </button>
                       </div>
                     )}
@@ -224,10 +209,10 @@ const Header = ({ onNavigationChange, currentPage }) => {
                         item.name === "TRENDING"
                           ? "#DC2626"
                           : item.name === activeLink
-                            ? "#DC2626"
-                            : activeLink === "NEWS PAPERS"
-                              ? "#1F2937"
-                              : "white",
+                          ? "#DC2626"
+                          : activeLink === "NEWS PAPERS"
+                          ? "#1F2937"
+                          : "white",
                       fontSize: "0.875rem",
                       fontWeight: "500",
                       padding: "0.5rem 0",
@@ -236,7 +221,9 @@ const Header = ({ onNavigationChange, currentPage }) => {
                       alignItems: "center",
                       gap: "0.25rem",
                       borderBottom:
-                        activeLink === item.name ? "2px solid #DC2626" : "none",
+                        item.name === activeLink
+                          ? "2px solid #DC2626"
+                          : "none",
                       transition: "color 0.2s ease",
                     }}
                     onClick={() => handleNavClick(item.name)}
@@ -267,7 +254,7 @@ const Header = ({ onNavigationChange, currentPage }) => {
         </div>
       </div>
 
-      
+      {/* Click outside dropdown */}
       {isFactCheckDropdownOpen && (
         <div
           style={{
@@ -280,6 +267,26 @@ const Header = ({ onNavigationChange, currentPage }) => {
       )}
     </header>
   );
+};
+
+// Helper: dropdown item base style
+const dropdownItemStyle = (activeLink) => ({
+  backgroundColor: "transparent",
+  border: "none",
+  color: activeLink === "NEWS PAPERS" ? "#1F2937" : "white",
+  fontSize: "0.875rem",
+  fontWeight: "400",
+  padding: "0.75rem 1rem",
+  cursor: "pointer",
+  width: "100%",
+  textAlign: "left",
+  transition: "background-color 0.2s ease",
+});
+
+// Helper: hover effect
+const applyHoverStyle = (e, activeLink, isHover) => {
+  e.target.style.backgroundColor = isHover ? "#DC2626" : "transparent";
+  e.target.style.color = isHover ? "white" : (activeLink === "NEWS PAPERS" ? "#1F2937" : "white");
 };
 
 export default Header;

@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import ChatWidget from "@/components/chatwidget";
 import NewsPage from "@/components/NewsPage";
 import SentimentAnalysisPage from "@/components/Sent_Analysis";
+import PropagandaAnalysis from "@/components/PropagandaAnalysis";
 
 const Index = () => {
   const [currentPage, setCurrentPage] = useState("HOME");
@@ -20,6 +21,8 @@ const Index = () => {
         return <NewsPage />;
       case "SENTIMENT_ANALYSIS":
         return <SentimentAnalysisPage />;
+      case "PROPAGANDA_ANALYSIS":
+        return <PropagandaAnalysis />;
       case "HOME":
       default:
         return (
@@ -48,7 +51,8 @@ const Index = () => {
 
       {currentPage === "HOME" && <Footer />}
 
-      {<ChatWidget />}
+      {/* Pass setCurrentPage to ChatWidget */}
+      <ChatWidget setCurrentPage={setCurrentPage} />
     </div>
   );
 };

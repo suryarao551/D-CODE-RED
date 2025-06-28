@@ -10,26 +10,22 @@ const SearchWidget = ({ onAnalysisComplete }) => {
     setError("");
 
     if (!newsLink.trim()) {
-      setError("Please enter the news");
-      return;
-    }
-
-    try {
-      new URL(newsLink);
-    } catch {
-      setError("Please enter a valid URL");
+      setError("Please enter the news (URL or text)");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      
       await new Promise((resolve) => setTimeout(resolve, 2000));
-      console.log("Fact-checking:", newsLink);
+      console.log("Fact-checking input:", newsLink);
 
+      // Detect if input is a URL or text
+      const isURL = newsLink.startsWith("http://") || newsLink.startsWith("https://");
+      
       if (onAnalysisComplete) {
-        onAnalysisComplete(newsLink);
+        // Pass both the input and the detected type
+        onAnalysisComplete(newsLink, isURL ? "url" : "text");
       }
     } catch (error) {
       setError("Failed to analyze the article. Please try again.");
@@ -66,13 +62,13 @@ const SearchWidget = ({ onAnalysisComplete }) => {
           textAlign: "center",
         }}
       >
-        Is this News True ?
+        Is this News True?
       </h3>
 
       <div style={{ display: "flex", gap: "0.5rem" }}>
         <input
           type="text"
-          placeholder="Paste the News link"
+          placeholder="Paste the news link or text"
           value={newsLink}
           onChange={(e) => {
             setNewsLink(e.target.value);
@@ -171,7 +167,7 @@ const SearchWidget = ({ onAnalysisComplete }) => {
             textAlign: "center",
           }}
         >
-          Paste any news article link to verify its authenticity
+          Paste any news article link or text to verify its authenticity
         </p>
       </div>
 

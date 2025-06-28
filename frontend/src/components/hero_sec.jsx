@@ -6,27 +6,35 @@ import ExtensionInstallModal from "./ExtensionInstallModal";
 
 const HeroSection = () => {
   const [showResults, setShowResults] = useState(false);
-  const [analyzedUrl, setAnalyzedUrl] = useState("");
+  const [analyzedInput, setAnalyzedInput] = useState("");
+  const [detectedMode, setDetectedMode] = useState("url");
   const [showExtensionModal, setShowExtensionModal] = useState(false);
 
   const handleAddExtension = () => {
     setShowExtensionModal(true);
   };
 
-  const handleAnalysisComplete = (url) => {
-    setAnalyzedUrl(url);
+  const handleAnalysisComplete = (input, mode) => {
+    setAnalyzedInput(input);
+    setDetectedMode(mode);
     setShowResults(true);
   };
 
   const handleBackToSearch = () => {
     setShowResults(false);
-    setAnalyzedUrl("");
+    setAnalyzedInput("");
   };
 
   
   if (showResults) {
     return (
-      <FactCheckResultPage newsUrl={analyzedUrl} onBack={handleBackToSearch} />    );
+      <FactCheckResultPage 
+        newsUrl={detectedMode === "url" ? analyzedInput : ""} 
+        newsText={detectedMode === "text" ? analyzedInput : ""}
+        detectedMode={detectedMode}
+        onBack={handleBackToSearch} 
+      />
+    );
   }
 
   return (
