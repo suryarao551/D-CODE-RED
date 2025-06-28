@@ -49,11 +49,19 @@ const Header = ({ onNavigationChange, currentPage }) => {
     setIsFactCheckDropdownOpen(false);
   };
 
+  const handleSocialMediaFactCheckClick = () => {
+    setIsFactCheckDropdownOpen(false);
+    // Navigate to the social media fact check page
+    window.location.href = "/social-media-factcheck";
+  };
+
   return (
     <header
       style={{
         backgroundColor: activeLink === "NEWS PAPERS" ? "#FFFFFF" : "#111827",
-        borderBottom: `1px solid ${activeLink === "NEWS PAPERS" ? "#E5E7EB" : "#374151"}`,
+        borderBottom: `1px solid ${
+          activeLink === "NEWS PAPERS" ? "#E5E7EB" : "#374151"
+        }`,
         position: "sticky",
         top: 0,
         zIndex: 50,
@@ -87,7 +95,6 @@ const Header = ({ onNavigationChange, currentPage }) => {
             </span>
           </div>
 
-          {/* Navigation */}
           <nav
             style={{
               display: "flex",
@@ -106,8 +113,9 @@ const Header = ({ onNavigationChange, currentPage }) => {
                         color:
                           item.name === activeLink ||
                           (item.name === "FACT CHECK" &&
-                            (activeLink === "SENTIMENT_ANALYSIS" ||
-                              activeLink === "PROPAGANDA_ANALYSIS"))
+                            activeLink === "SENTIMENT_ANALYSIS") ||
+                          (item.name === "FACT CHECK" &&
+                            activeLink === "PROPAGANDA_ANALYSIS")
                             ? "#DC2626"
                             : activeLink === "NEWS PAPERS"
                             ? "#1F2937"
@@ -120,10 +128,11 @@ const Header = ({ onNavigationChange, currentPage }) => {
                         alignItems: "center",
                         gap: "0.25rem",
                         borderBottom:
-                          item.name === activeLink ||
+                          activeLink === item.name ||
                           (item.name === "FACT CHECK" &&
-                            (activeLink === "SENTIMENT_ANALYSIS" ||
-                              activeLink === "PROPAGANDA_ANALYSIS"))
+                            activeLink === "SENTIMENT_ANALYSIS") ||
+                          (item.name === "FACT CHECK" &&
+                            activeLink === "PROPAGANDA_ANALYSIS")
                             ? "2px solid #DC2626"
                             : "none",
                         transition: "color 0.2s ease",
@@ -150,7 +159,9 @@ const Header = ({ onNavigationChange, currentPage }) => {
                             activeLink === "NEWS PAPERS"
                               ? "#FFFFFF"
                               : "#1F2937",
-                          border: `1px solid ${activeLink === "NEWS PAPERS" ? "#E5E7EB" : "#374151"}`,
+                          border: `1px solid ${
+                            activeLink === "NEWS PAPERS" ? "#E5E7EB" : "#374151"
+                          }`,
                           borderRadius: "0.5rem",
                           padding: "0.5rem 0",
                           minWidth: "180px",
@@ -158,42 +169,127 @@ const Header = ({ onNavigationChange, currentPage }) => {
                           zIndex: 100,
                         }}
                       >
-                        {/* Fact Check */}
                         <button
-                          style={dropdownItemStyle(activeLink)}
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color:
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white",
+                            fontSize: "0.875rem",
+                            fontWeight: "400",
+                            padding: "0.75rem 1rem",
+                            cursor: "pointer",
+                            width: "100%",
+                            textAlign: "left",
+                            transition: "background-color 0.2s ease",
+                          }}
                           onClick={handleFactCheckClick}
-                          onMouseEnter={(e) =>
-                            applyHoverStyle(e, activeLink, true)
-                          }
-                          onMouseLeave={(e) =>
-                            applyHoverStyle(e, activeLink, false)
-                          }
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#DC2626";
+                            e.target.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "transparent";
+                            e.target.style.color =
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white";
+                          }}
                         >
                           Fact Check
                         </button>
-                        {/* Sentiment Analysis */}
                         <button
-                          style={dropdownItemStyle(activeLink)}
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color:
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white",
+                            fontSize: "0.875rem",
+                            fontWeight: "400",
+                            padding: "0.75rem 1rem",
+                            cursor: "pointer",
+                            width: "100%",
+                            textAlign: "left",
+                            transition: "background-color 0.2s ease",
+                          }}
+                          onClick={handleSocialMediaFactCheckClick}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#DC2626";
+                            e.target.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "transparent";
+                            e.target.style.color =
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white";
+                          }}
+                        >
+                          Social Media Fact Check
+                        </button>
+                        <button
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color:
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white",
+                            fontSize: "0.875rem",
+                            fontWeight: "400",
+                            padding: "0.75rem 1rem",
+                            cursor: "pointer",
+                            width: "100%",
+                            textAlign: "left",
+                            transition: "background-color 0.2s ease",
+                          }}
                           onClick={handleSentimentAnalysisClick}
-                          onMouseEnter={(e) =>
-                            applyHoverStyle(e, activeLink, true)
-                          }
-                          onMouseLeave={(e) =>
-                            applyHoverStyle(e, activeLink, false)
-                          }
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#DC2626";
+                            e.target.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "transparent";
+                            e.target.style.color =
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white";
+                          }}
                         >
                           Sentiment Analysis
                         </button>
-                        {/* Propaganda Analysis */}
                         <button
-                          style={dropdownItemStyle(activeLink)}
+                          style={{
+                            backgroundColor: "transparent",
+                            border: "none",
+                            color:
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white",
+                            fontSize: "0.875rem",
+                            fontWeight: "400",
+                            padding: "0.75rem 1rem",
+                            cursor: "pointer",
+                            width: "100%",
+                            textAlign: "left",
+                            transition: "background-color 0.2s ease",
+                          }}
                           onClick={handlePropagandaAnalysisClick}
-                          onMouseEnter={(e) =>
-                            applyHoverStyle(e, activeLink, true)
-                          }
-                          onMouseLeave={(e) =>
-                            applyHoverStyle(e, activeLink, false)
-                          }
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = "#DC2626";
+                            e.target.style.color = "white";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = "transparent";
+                            e.target.style.color =
+                              activeLink === "NEWS PAPERS"
+                                ? "#1F2937"
+                                : "white";
+                          }}
                         >
                           Propaganda Analysis
                         </button>
@@ -221,7 +317,11 @@ const Header = ({ onNavigationChange, currentPage }) => {
                       alignItems: "center",
                       gap: "0.25rem",
                       borderBottom:
-                        item.name === activeLink
+                        activeLink === item.name ||
+                        (item.name === "FACT CHECK" &&
+                          activeLink === "SENTIMENT_ANALYSIS") ||
+                        (item.name === "FACT CHECK" &&
+                          activeLink === "PROPAGANDA_ANALYSIS")
                           ? "2px solid #DC2626"
                           : "none",
                       transition: "color 0.2s ease",
@@ -254,7 +354,6 @@ const Header = ({ onNavigationChange, currentPage }) => {
         </div>
       </div>
 
-      {/* Click outside dropdown */}
       {isFactCheckDropdownOpen && (
         <div
           style={{
@@ -267,26 +366,6 @@ const Header = ({ onNavigationChange, currentPage }) => {
       )}
     </header>
   );
-};
-
-// Helper: dropdown item base style
-const dropdownItemStyle = (activeLink) => ({
-  backgroundColor: "transparent",
-  border: "none",
-  color: activeLink === "NEWS PAPERS" ? "#1F2937" : "white",
-  fontSize: "0.875rem",
-  fontWeight: "400",
-  padding: "0.75rem 1rem",
-  cursor: "pointer",
-  width: "100%",
-  textAlign: "left",
-  transition: "background-color 0.2s ease",
-});
-
-// Helper: hover effect
-const applyHoverStyle = (e, activeLink, isHover) => {
-  e.target.style.backgroundColor = isHover ? "#DC2626" : "transparent";
-  e.target.style.color = isHover ? "white" : (activeLink === "NEWS PAPERS" ? "#1F2937" : "white");
 };
 
 export default Header;

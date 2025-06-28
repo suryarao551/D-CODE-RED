@@ -14,15 +14,20 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
 
     try {
       // Check if input looks like a real URL
-      const isProbablyURL = value.startsWith("http://") || value.startsWith("https://");
+      const isProbablyURL =
+        value.startsWith("http://") || value.startsWith("https://");
 
-      const payload = activeMode === "url" && isProbablyURL
-        ? { url: value }
-        : { text: value };
+      const payload =
+        activeMode === "url" && isProbablyURL
+          ? { url: value }
+          : { text: value };
 
       console.log("Sending payload:", payload);
 
-      const response = await axios.post("http://localhost:8000/factcheck", payload);
+      const response = await axios.post(
+        "http://localhost:8000/factcheck",
+        payload
+      );
 
       const structuredResult = {
         credibility_score: response.data.credibility_score || 0,
@@ -59,27 +64,36 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
     }
   };
 
-  const resultData = result && !result.error
-    ? {
-        summary: result.explanation,
-        status: result.verdict,
-        confidence: '${result.credibility_score}%',
-        source: result.source,
-        falsePercentage: result.verdict === "False"
-          ? result.credibility_score
-          : 100 - result.credibility_score,
-        truePercentage: result.verdict === "True"
-          ? result.credibility_score
-          : result.credibility_score,
-      }
-    : {
-        summary: loading ? "Checking..." : result?.error || "No data available",
-        status: loading ? "Checking..." : "Unknown",
-        confidence: "...",
-        source: "",
-        falsePercentage: 0,
-        truePercentage: 0,
-      };
+  const resultData =
+    result && !result.error
+      ? {
+          summary: result.explanation,
+          status: result.verdict,
+          confidence: `${result.credibility_score}%`,
+          source: result.source,
+          falsePercentage:
+            result.verdict === "False"
+              ? result.credibility_score
+              : result.verdict === "True"
+              ? 100 - result.credibility_score
+              : 50,
+          truePercentage:
+            result.verdict === "True"
+              ? result.credibility_score
+              : result.verdict === "False"
+              ? 100 - result.credibility_score
+              : 50,
+        }
+      : {
+          summary: loading
+            ? "Checking..."
+            : result?.error || "No data available",
+          status: loading ? "Checking..." : "Unknown",
+          confidence: "...",
+          source: "",
+          falsePercentage: 0,
+          truePercentage: 0,
+        };
 
   const radius = 85;
   const circumference = 2 * Math.PI * radius;
@@ -87,9 +101,22 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
   const trueDash = (resultData.truePercentage / 100) * circumference;
 
   return (
-    <div style={{ backgroundColor: "#111827", minHeight: "100vh", padding: "2rem" }}>
+    <div
+      style={{
+        backgroundColor: "#111827",
+        minHeight: "100vh",
+        padding: "2rem",
+      }}
+    >
       <div style={{ maxWidth: "1200px", margin: "auto" }}>
-        <h2 style={{ color: "white", fontSize: "1.5rem", marginBottom: "1rem", fontFamily: "serif" }}>
+        <h2
+          style={{
+            color: "white",
+            fontSize: "1.5rem",
+            marginBottom: "1rem",
+            fontFamily: "serif",
+          }}
+        >
           Is this News True?
         </h2>
 
@@ -178,16 +205,20 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
 
         {/* Loading state */}
         {loading && (
-          <div style={{ marginTop: "2rem", textAlign: "center", color: "white" }}>
-            <div style={{ 
-              width: "40px", 
-              height: "40px", 
-              border: "4px solid #374151", 
-              borderTop: "4px solid #16A34A", 
-              borderRadius: "50%", 
-              animation: "spin 1s linear infinite",
-              margin: "0 auto 1rem"
-            }} />
+          <div
+            style={{ marginTop: "2rem", textAlign: "center", color: "white" }}
+          >
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                border: "4px solid #374151",
+                borderTop: "4px solid #16A34A",
+                borderRadius: "50%",
+                animation: "spin 1s linear infinite",
+                margin: "0 auto 1rem",
+              }}
+            />
             Fact-checking {mode === "url" ? "URL" : "text"}...
           </div>
         )}
@@ -197,55 +228,88 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
           <div style={{ marginTop: "2rem", color: "white" }}>
             <h3>
               Verdict:{" "}
-              <span style={{ color: resultData.status === "False" ? "#EF4444" : "#10B981" }}>
+              <span
+                style={{
+                  color: resultData.status === "False" ? "#EF4444" : "#10B981",
+                }}
+              >
                 {resultData.status}
               </span>
             </h3>
-            <p><strong>Confidence:</strong> {resultData.confidence}</p>
-            <p><strong>Explanation:</strong> {resultData.summary}</p>
+            <p>
+              <strong>Confidence:</strong> {resultData.confidence}
+            </p>
+            <p>
+              <strong>Explanation:</strong> {resultData.summary}
+            </p>
             {resultData.source && (
               <p>
                 <strong>Source: </strong>
-                <a href={resultData.source} target="_blank" rel="noopener noreferrer" style={{ color: "#3B82F6" }}>
+                <a
+                  href={resultData.source}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{ color: "#3B82F6" }}
+                >
                   {resultData.source}
                 </a>
               </p>
             )}
 
             {/* Circle Chart */}
-            <div style={{ marginTop: "2rem", display: "flex", justifyContent: "center", position: "relative" }}>
-              <svg width="200" height="200" style={{ transform: "rotate(-90deg)" }}>
-                <circle cx="100" cy="100" r={radius} fill="none" stroke="#374151" strokeWidth="12" />
-                <circle 
-                  cx="100" 
-                  cy="100" 
-                  r={radius} 
-                  fill="none" 
-                  stroke="#DC2626" 
+            <div
+              style={{
+                marginTop: "2rem",
+                display: "flex",
+                justifyContent: "center",
+                position: "relative",
+              }}
+            >
+              <svg
+                width="200"
+                height="200"
+                style={{ transform: "rotate(-90deg)" }}
+              >
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="none"
+                  stroke="#374151"
                   strokeWidth="12"
-                  strokeDasharray={'${falseDash} ${circumference}'} 
                 />
-                <circle 
-                  cx="100" 
-                  cy="100" 
-                  r={radius} 
-                  fill="none" 
-                  stroke="#16A34A" 
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="none"
+                  stroke="#DC2626"
                   strokeWidth="12"
-                  strokeDasharray={'${trueDash} ${circumference}'} 
-                  strokeDashoffset={-falseDash} 
+                  strokeDasharray={`${falseDash} ${circumference}`}
+                />
+                <circle
+                  cx="100"
+                  cy="100"
+                  r={radius}
+                  fill="none"
+                  stroke="#16A34A"
+                  strokeWidth="12"
+                  strokeDasharray={`${trueDash} ${circumference}`}
+                  strokeDashoffset={-falseDash}
                 />
               </svg>
-              
+
               {/* Center percentage display */}
-              <div style={{
-                position: "absolute",
-                top: "50%",
-                left: "50%",
-                transform: "translate(-50%, -50%)",
-                textAlign: "center",
-                color: "white"
-              }}>
+              <div
+                style={{
+                  position: "absolute",
+                  top: "50%",
+                  left: "50%",
+                  transform: "translate(-50%, -50%)",
+                  textAlign: "center",
+                  color: "white",
+                }}
+              >
                 <div style={{ fontSize: "1.5rem", fontWeight: "bold" }}>
                   {resultData.falsePercentage}%
                 </div>
@@ -256,20 +320,45 @@ const FactCheckResultPage = ({ newsUrl, newsText, detectedMode }) => {
             </div>
 
             {/* Legend */}
-            <div style={{ marginTop: "1rem", display: "flex", justifyContent: "center", gap: "2rem" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: "12px", height: "12px", backgroundColor: "#DC2626", borderRadius: "50%" }} />
+            <div
+              style={{
+                marginTop: "1rem",
+                display: "flex",
+                justifyContent: "center",
+                gap: "2rem",
+              }}
+            >
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: "#DC2626",
+                    borderRadius: "50%",
+                  }}
+                />
                 <span>False ({resultData.falsePercentage}%)</span>
               </div>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                <div style={{ width: "12px", height: "12px", backgroundColor: "#16A34A", borderRadius: "50%" }} />
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}
+              >
+                <div
+                  style={{
+                    width: "12px",
+                    height: "12px",
+                    backgroundColor: "#16A34A",
+                    borderRadius: "50%",
+                  }}
+                />
                 <span>True ({resultData.truePercentage}%)</span>
               </div>
             </div>
           </div>
         )}
       </div>
-      
+
       <style>
         {`
           @keyframes spin {
