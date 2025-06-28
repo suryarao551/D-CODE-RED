@@ -10,7 +10,7 @@ chrome.runtime.onInstalled.addListener(() => {
     if (info.menuItemId === "factCheck") {
       const selectedText = info.selectionText;
   
-      fetch("http://localhost:8000/extension", {
+      fetch("http://localhost:8000/factcheck", {
         method: "POST",
         headers: {
           "Content-Type": "application/json"
