@@ -48,7 +48,7 @@ const Index = () => {
 
       {currentPage === "HOME" && <Footer />}
 
-      {/* <ChatWidget /> */}
+      {<ChatWidget />}
     </div>
   );
 };
