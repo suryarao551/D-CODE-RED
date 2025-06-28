@@ -35,7 +35,7 @@ app.add_middleware(
 NEWS_DATA_API = os.getenv("NEWS_DATA_API")
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-llm = ChatOllama(model="gemma2:9b")
+llm = ChatOllama(model="gemma2:2b")
 
 prompt_template = PromptTemplate.from_template("""
 You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness by combining your own up-to-date knowledge with the provided context from multiple news sources.

@@ -5,7 +5,19 @@ import cv2
 import numpy as np
 import uvicorn
 
+from fastapi.middleware.cors import CORSMiddleware
+
+
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Or specify your frontend origin
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 reader = easyocr.Reader(['en'], gpu=True)  # Enable GPU
 
 @app.post("/extract-text/")
