@@ -35,7 +35,7 @@ app.add_middleware(
 NEWS_DATA_API = os.getenv("NEWS_DATA_API")
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-llm = ChatOllama(model="gemma2:2b")
+llm = ChatOllama(model="gemma2:9b")
 
 prompt_template = PromptTemplate.from_template("""
 [28/06/25, 10:09:56 PM] Prathamesh Patil: guysss
