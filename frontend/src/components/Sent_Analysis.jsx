@@ -6,15 +6,7 @@ const SentimentAnalysisPage = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showResults, setShowResults] = useState(false);
   const [audioFile, setAudioFile] = useState(null);
-
-  const sentimentData = [
-    { name: "Sadnesss", value: 25, color: "#DC2626" },
-    { name: "Joy", value: 30, color: "#DC2626" },
-    { name: "Love", value: 60, color: "#16A34A" },
-    { name: "Anger", value: 45, color: "#DC2626" },
-    { name: "Fear", value: 35, color: "#DC2626" },
-    { name: "Surprise", value: 20, color: "#DC2626" },
-  ];
+  const [sentimentData, setSentimentData] = useState([]);
 
   const handleAudioChange = (e) => {
     setAudioFile(e.target.files[0]);
@@ -27,9 +19,46 @@ const SentimentAnalysisPage = () => {
   const handleAnalyze = async () => {
     if (!newsText.trim() && !audioFile) return;
     setIsAnalyzing(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsAnalyzing(false);
-    setShowResults(true);
+
+    try {
+      let finalText = newsText;
+
+      // Step 1: Transcribe audio if uploaded
+      if (audioFile) {
+        const formData = new FormData();
+        formData.append("file", audioFile);
+
+        const transcriptionRes = await axios.post("http://127.0.0.1:8030/transcribe-audio", formData, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+
+        finalText = transcriptionRes.data.transcription;
+        setNewsText(finalText); // auto-fill textarea
+      }
+
+      // Step 2: Analyze sentiment
+      const predictRes = await axios.post("http://127.0.0.1:8030/predict", {
+        text: finalText,
+      });
+
+      const result = predictRes.data;
+
+      const updatedSentiments = Object.entries(result.emotion_scores).map(
+        ([label, value]) => ({
+          name: label,
+          value: Math.round(value * 100),
+          color: label === "joy" || label === "love" ? "#16A34A" : "#DC2626",
+        })
+      );
+
+      setSentimentData(updatedSentiments);
+      setShowResults(true);
+    } catch (error) {
+      console.error("Error analyzing sentiment:", error);
+      alert("Error analyzing sentiment.");
+    } finally {
+      setIsAnalyzing(false);
+    }
   };
 
   const handleKeyPress = (e) => {
@@ -39,312 +68,78 @@ const SentimentAnalysisPage = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "#111827",
-        padding: "2rem 0",
-      }}
-    >
-      <div
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "0 1rem",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "3rem",
-            alignItems: "start",
-          }}
-        >
-          {/* Left Panel - Audio Upload and Text Input */}
-          <div
-            style={{
-              backgroundColor: "#1F2937",
-              borderRadius: "0.5rem",
-              padding: "2rem",
-              border: "1px solid #374151",
-            }}
-          >
-            <h2
-              style={{
-                color: "white",
-                fontSize: "1.5rem",
-                fontWeight: "400",
-                marginBottom: "2rem",
-                fontFamily: "serif",
-              }}
-            >
-              Know the sentiment of this News
-            </h2>
+    <div style={{ backgroundColor: "#111827", minHeight: "100vh", padding: "2rem" }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto", display: "grid", gap: "2rem", gridTemplateColumns: "1fr 1fr" }}>
+        {/* Upload and Input */}
+        <div style={{ backgroundColor: "#1F2937", padding: "2rem", borderRadius: "1rem" }}>
+          <h2 style={{ color: "white", fontSize: "1.5rem", fontFamily: "serif" }}>Know the sentiment of this News</h2>
 
-            {/* Audio Upload Box */}
-            <div
-              style={{
-                position: "relative",
-                border: "2px dashed #16A34A",
-                borderRadius: "0.5rem",
-                padding: "1.5rem 1rem",
-                marginBottom: "1.5rem",
-                background: "#111827",
-                textAlign: "center",
-              }}
-            >
-              <label
-                style={{ color: "#16A34A", fontWeight: 500, cursor: "pointer" }}
-              >
-                Click to upload audio file
-                <input
-                  type="file"
-                  accept="audio/*"
-                  onChange={handleAudioChange}
-                  style={{ display: "none" }}
-                />
-              </label>
-              {audioFile && (
-                <>
-                  <div style={{ color: "#9CA3AF", marginTop: 8 }}>
-                    Selected: {audioFile.name}
-                  </div>
-                  <button
-                    onClick={handleRemoveAudio}
-                    aria-label="Remove audio file"
-                    style={{
-                      position: "absolute",
-                      top: "8px",
-                      right: "8px",
-                      width: "20px",
-                      height: "20px",
-                      borderRadius: "50%",
-                      border: "none",
-                      background: "#DC2626",
-                      color: "#FFFFFF",
-                      fontWeight: 700,
-                      lineHeight: "20px",
-                      cursor: "pointer",
-                    }}
-                  >
-                    ×
-                  </button>
-                </>
-              )}
-            </div>
-
-            <div style={{ marginBottom: "1.5rem" }}>
-              <textarea
-                placeholder="Insert news paragraph"
-                value={newsText}
-                onChange={(e) => setNewsText(e.target.value)}
-                onKeyPress={handleKeyPress}
-                style={{
-                  width: "100%",
-                  height: "200px",
-                  backgroundColor: "#111827",
-                  border: "2px solid #16A34A",
-                  borderRadius: "0.375rem",
-                  padding: "1rem",
-                  color: "white",
-                  fontSize: "0.875rem",
-                  resize: "vertical",
-                  outline: "none",
-                  fontFamily: "inherit",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "#16A34A";
-                  e.target.style.boxShadow = "0 0 0 2px rgba(22, 163, 74, 0.2)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "#16A34A";
-                  e.target.style.boxShadow = "none";
-                }}
-              />
-            </div>
-
-            <button
-              onClick={handleAnalyze}
-              disabled={(!newsText.trim() && !audioFile) || isAnalyzing}
-              style={{
-                backgroundColor: "#16A34A",
-                color: "white",
-                border: "none",
-                borderRadius: "0.375rem",
-                padding: "0.75rem 2rem",
-                fontSize: "0.875rem",
-                fontWeight: "500",
-                cursor:
-                  (!newsText.trim() && !audioFile) || isAnalyzing
-                    ? "not-allowed"
-                    : "pointer",
-                opacity: (!newsText.trim() && !audioFile) || isAnalyzing ? 0.6 : 1,
-                transition: "all 0.2s ease",
-                width: "120px",
-              }}
-              onMouseEnter={(e) => {
-                if ((newsText.trim() || audioFile) && !isAnalyzing) {
-                  e.target.style.backgroundColor = "#15803D";
-                }
-              }}
-              onMouseLeave={(e) => {
-                if ((newsText.trim() || audioFile) && !isAnalyzing) {
-                  e.target.style.backgroundColor = "#16A34A";
-                }
-              }}
-            >
-              {isAnalyzing ? "Analyzing..." : "Search"}
-            </button>
-
-            <p
-              style={{
-                color: "#9CA3AF",
-                fontSize: "0.75rem",
-                marginTop: "1rem",
-                lineHeight: 1.5,
-              }}
-            >
-              Paste your news content above or upload an audio file and press
-              Ctrl+Enter or click Search to analyze sentiment
-            </p>
+          {/* Audio Upload */}
+          <div style={{ border: "2px dashed #16A34A", padding: "1rem", textAlign: "center", margin: "1rem 0" }}>
+            <label style={{ color: "#16A34A", cursor: "pointer" }}>
+              Click to upload audio
+              <input type="file" accept="audio/*" onChange={handleAudioChange} style={{ display: "none" }} />
+            </label>
+            {audioFile && (
+              <div style={{ marginTop: "0.5rem", color: "#ccc" }}>
+                {audioFile.name}
+                <button onClick={handleRemoveAudio} style={{ marginLeft: "1rem", background: "red", color: "white" }}>×</button>
+              </div>
+            )}
           </div>
 
-          {/* Right Panel - Sentiment Results */}
-          <div
+          {/* Text Input */}
+          <textarea
+            placeholder="Or type/paste news content"
+            value={newsText}
+            onChange={(e) => setNewsText(e.target.value)}
+            onKeyDown={handleKeyPress}
             style={{
-              backgroundColor: "#1F2937",
-              borderRadius: "0.5rem",
-              padding: "2rem",
-              border: "1px solid #374151",
-              opacity: showResults ? 1 : 0.5,
-              transition: "opacity 0.3s ease",
-            }}
-          >
-            <h3
-              style={{
-                color: "white",
-                fontSize: "1.5rem",
-                fontWeight: "400",
-                marginBottom: "2rem",
-                textAlign: "center",
-              }}
-            >
-              Sentiment
-            </h3>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: "1rem" }}>
-              {sentimentData.map((sentiment, index) => (
-                <div
-                  key={sentiment.name}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "1rem",
-                    animation: showResults
-                      ? `slideInRight 0.5s ease-out ${index * 0.1}s both`
-                      : "none",
-                  }}
-                >
-                  {/* Sentiment Label */}
-                  <div
-                    style={{
-                      color: "white",
-                      fontSize: "0.875rem",
-                      fontWeight: "400",
-                      minWidth: "80px",
-                      textAlign: "left",
-                    }}
-                  >
-                    {sentiment.name}
-                  </div>
-                  {/* Sentiment Bar */}
-                  <div
-                    style={{
-                      flex: 1,
-                      height: "16px",
-                      background: "#374151",
-                      borderRadius: "8px",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${sentiment.value}%`,
-                        height: "100%",
-                        background: sentiment.color,
-                        borderRadius: "8px 0 0 8px",
-                        transition: "width 0.5s",
-                      }}
-                    />
-                  </div>
-                  {/* Sentiment Value */}
-                  <div
-                    style={{
-                      color: sentiment.color,
-                      fontWeight: "600",
-                      minWidth: "40px",
-                      textAlign: "right",
-                    }}
-                  >
-                    {sentiment.value}%
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-        {/* Instruction Section */}
-        <div
-          style={{
-            marginTop: "3rem",
-            padding: "1.5rem",
-            backgroundColor: "#1F2937",
-            borderRadius: "0.5rem",
-            border: "1px solid #374151",
-          }}
-        >
-          <h4
-            style={{
+              width: "100%",
+              height: "150px",
+              backgroundColor: "#111827",
+              border: "2px solid #16A34A",
+              borderRadius: "0.375rem",
+              padding: "1rem",
               color: "white",
-              fontSize: "1.125rem",
-              fontWeight: "600",
               marginBottom: "1rem",
+              resize: "vertical",
             }}
-          >
-            How Sentiment Analysis Works
-          </h4>
-          <p
+          />
+
+          <button
+            onClick={handleAnalyze}
+            disabled={isAnalyzing}
             style={{
-              color: "#D1D5DB",
-              lineHeight: 1.6,
-              fontSize: "0.875rem",
+              backgroundColor: "#16A34A",
+              color: "white",
+              padding: "0.75rem 2rem",
+              borderRadius: "0.375rem",
+              border: "none",
+              cursor: "pointer",
             }}
           >
-            Our advanced AI analyzes the emotional tone and sentiment within news
-            articles. The system identifies various emotions including hate,
-            violence, joy, fear, and more. Positive sentiments are shown in{" "}
-            <span style={{ color: "#16A34A", fontWeight: "600" }}>green</span>,
-            while negative sentiments appear in{" "}
-            <span style={{ color: "#DC2626", fontWeight: "600" }}>red</span>. This
-            helps you understand the emotional impact and bias present in news
-            content.
-          </p>
+            {isAnalyzing ? "Analyzing..." : "Search"}
+          </button>
+        </div>
+
+        {/* Sentiment Results */}
+        <div style={{ backgroundColor: "#1F2937", padding: "2rem", borderRadius: "1rem" }}>
+          <h3 style={{ color: "white", fontSize: "1.5rem", textAlign: "center" }}>Sentiment</h3>
+
+          <div style={{ marginTop: "1rem", display: "flex", flexDirection: "column", gap: "1rem" }}>
+            {showResults && sentimentData.map((sentiment, index) => (
+              <div key={index} style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
+                <span style={{ color: "white", width: "100px" }}>{sentiment.name}</span>
+                <div style={{ flex: 1, background: "#374151", height: "16px", borderRadius: "8px" }}>
+                  <div style={{ width: `${sentiment.value}%`, height: "100%", background: sentiment.color, borderRadius: "8px" }}></div>
+                </div>
+                <span style={{ color: sentiment.color, fontWeight: "bold" }}>{sentiment.value}%</span>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
-
-      <style jsx>{`
-        @keyframes slideInRight {
-          from {
-            opacity: 0;
-            transform: translateX(30px);
-          }
-          to {
-            opacity: 1;
-            transform: translateX(0);
-          }
-        }
-      `}</style>
     </div>
   );
 };
