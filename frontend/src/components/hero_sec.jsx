@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import SearchWidget from "./Search_widget";
-// import FactCheckResultPage from "./Factcheck_res";
-// import ExtensionInstallModal from "./ExtensionInstallModal";
+import FactCheckResultPage from "./Factcheck_res";
+import ExtensionInstallModal from "./ExtensionInstallModal";
 
 const HeroSection = () => {
   const [showResults, setShowResults] = useState(false);
