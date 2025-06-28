@@ -16,9 +16,9 @@ const PropagandaAnalysis = () => {
     setShowResults(false);
 
     try {
-      const [propagandaRes] = await Promise.all([
+      const [propagandaRes,toxicityRes] = await Promise.all([
         axios.post("http://localhost:8040/detect_propaganda",  { data: text }),
-        axios.post("http://localhost:8050/analyze-toxicity", { text }),
+        axios.post("http://localhost:8050/analyze-toxicity", { text: text}),
       ]);
 
       const propaganda = propagandaRes.data;
