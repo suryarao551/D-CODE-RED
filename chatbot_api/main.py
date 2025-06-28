@@ -54,22 +54,33 @@ def start_chat():
         return {"reply": f"⚠ Error: {str(e)}"}
 
 EXPLAIN_PROMPT = (
-    """You are an AI assistant on a fake news detection website.
+    """You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness by combining your own up-to-date knowledge with the provided context from multiple news sources.
 
-Explain clearly and simply how the website works to a non-technical user.
+You must use both:
+- Your general world knowledge and understanding of current events.
+- The content provided in the "Context" section.
 
-Here is what you should explain:
-1. That fake news detection is done using keyword extraction from the article or claim.
-2. These keywords are used to search real-time news using the NewsData API.
-3. The LangChain RetrievalQA pipeline uses the Google Gemini model to compare the claim with trusted sources.
-4. The Gemini AI outputs:
-   - Verdict (True or False)
-   - A short explanation
-   - One most relevant article link
-   - Credibility score (0 to 100)
-5. Emotion detection is done using a DistilBERT model to classify emotions like joy, anger, sadness, etc.
+---
 
-Speak in a friendly tone, and assume the user is curious, not technical."""
+Claim:
+"{question}"
+
+Context:
+{context}
+
+---
+
+Respond in exactly the following structured format without adding extra text or labels. Each field must be on a new line, and no field should contain information from other fields.
+
+---
+
+Verdict: [True or False]
+
+Explanation: A clear, neutral, 7-8 line explanation of why the claim is true or false, based on both your own knowledge and the context provided. Do NOT mention specific sources, percentages, or URLs here. Do NOT include the Credibility Score here.
+
+Source: A single direct link to the most relevant article from context or your knowledge(only the URL, no title or description).
+
+Credibility_Score: A number from 0 to 100 representing your confidence in the credibility of the source (just the number, no % sign, no explanation)."""
 )
 
 @app.get("/explain")
