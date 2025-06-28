@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import os, re, requests
@@ -11,31 +11,31 @@ from langchain_community.vectorstores import FAISS
 from langchain_ollama import ChatOllama
 from langchain_core.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
+
 import nltk
 import spacy
 
+# -------------------- Setup --------------------
 load_dotenv()
+nltk.download("punkt")
+nlp = spacy.load("en_core_web_sm")
 
-app = FastAPI()
-nltk.download('punkt')
+app = FastAPI(title="Unified FactCheck API")
 
-origins = [
-    "http://localhost:8000",
-    "http://127.0.0.1:8000",
-]
-
+# Allow all origins during development (restrict in production)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Use specific origin in production
+    allow_origins=["*"],  # For development; replace with domain later
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# -------------------- Config --------------------
 NEWS_DATA_API = os.getenv("NEWS_DATA_API")
 
 embeddings = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
-llm = ChatOllama(model="gemma2:2b")  # ✅ Replaced Gemini with Ollama Gemma
+llm = ChatOllama(model="gemma2:2b")
 
 prompt_template = PromptTemplate.from_template("""
 You are a professional fact-checking assistant. Your task is to analyze a claim and assess its truthfulness using the provided context from multiple news sources.
@@ -63,15 +63,39 @@ Source: A single direct link to the most relevant article (only the URL, no titl
 Credibility_Score: A number from 0 to 100 representing your confidence in the credibility of the source (just the number, no % sign, no explanation).
 """)
 
-class FactCheckRequest(BaseModel):
-    url: str
+# -------------------- Request Schema --------------------
+class UnifiedFactCheckRequest(BaseModel):
+    url: str | None = None
+    text: str | None = None
 
-class ExtensionFactCheckRequest(BaseModel):
-    text: str
+# -------------------- Utility Functions --------------------
+def url_to_news_text(news_url: str) -> str:
+    article = Article(news_url)
+    article.download()
+    article.parse()
+    article.nlp()
+    return f"{article.title}"
 
-nlp = spacy.load("en_core_web_sm")
+def get_new_data(query: str):
+    url = f"https://newsdata.io/api/1/latest?apikey={NEWS_DATA_API}&q={query}"
+    response = requests.get(url)
+    return response.json()
 
-def top_4_keywords_string(sentence):
+def json_to_documents(json_data):
+    documents = []
+    for article in json_data.get("results", []):
+        if not isinstance(article, dict):
+            continue
+        if article.get("language", "").lower() != "english":
+            continue
+        title = article.get("title", "")
+        description = article.get("description", "")
+        link = article.get("link", "")
+        content = f"Title: {title}\nDescription: {description}\nSource: {link}"
+        documents.append(Document(page_content=content, metadata={"source": link}))
+    return documents
+
+def top_4_keywords_string(sentence: str) -> str:
     sentence = re.sub(r"[’‘“”]", "'", sentence)
     doc = nlp(sentence)
     keywords = [
@@ -89,44 +113,11 @@ def top_4_keywords_string(sentence):
             unique_keywords.append(word)
     return " ".join(unique_keywords[:4])
 
-def clean_query(title):
-    if len(title) >= 100:
-        words = re.findall(r'\b\w{4,}\b', title.lower())
-        return ' '.join(words[:10])[:100]
-    else:
-        return title
-
-def url_to_news_text(news_url):
-    article = Article(news_url)
-    article.download()
-    article.parse()
-    article.nlp()
-    return f"{article.title}"
-
-def get_new_data(query):
-    url = f"https://newsdata.io/api/1/latest?apikey={NEWS_DATA_API}&q={query}"
-    response = requests.get(url)
-    return response.json()
-
-def json_to_documents(json_data):
-    documents = []
-    for article in json_data.get("results", []):
-        if not isinstance(article, dict):
-            continue
-        title = article.get("title", "")
-        description = article.get("description", "")
-        link = article.get("link", "")
-        language = article.get("language", "")
-        if language.lower() != "english":
-            continue
-        content = f"Title: {title}\nDescription: {description}\n Source: {link}"
-        documents.append(Document(page_content=content, metadata={"source": link}))
-    return documents
-
 def parse_response(text: str):
     lines = text.strip().splitlines()
     verdict, explanation, source, credibility_score = "Uncertain", "", "", 0
     collecting_explanation = False
+
     for line in lines:
         lower = line.lower().strip()
         if lower.startswith("verdict:"):
@@ -146,6 +137,7 @@ def parse_response(text: str):
             collecting_explanation = False
         elif collecting_explanation:
             explanation += " " + line.strip()
+
     return {
         "verdict": verdict,
         "explanation": explanation.strip(),
@@ -153,24 +145,28 @@ def parse_response(text: str):
         "credibility_score": credibility_score
     }
 
+# -------------------- Main Endpoint --------------------
 @app.post("/factcheck")
-async def fact_check(request: FactCheckRequest):
+async def unified_fact_check(request: UnifiedFactCheckRequest):
     try:
-        print("Received request:", request)
-        news_url = request.url
-        if not news_url:
-            return {"error": "No URL provided"}
+        # Step 1: Extract content
+        if request.url and request.url.startswith("http"):
+            news_text = url_to_news_text(request.url)
+        elif request.text:
+            news_text = request.text
+        else:
+            return {"error": "You must provide either a valid 'url' (starting with http) or plain 'text'."}
 
-        news_text = url_to_news_text(news_url)
+
+        # Step 2: Get keywords and retrieve articles
         query = top_4_keywords_string(news_text)
-        print(query)
         raw_news = get_new_data(query)
-        print(raw_news)
         docs = json_to_documents(raw_news)
 
         if not docs:
             return {"error": "No relevant news articles found"}
 
+        # Step 3: RAG Chain with FAISS
         vectorstore = FAISS.from_documents(docs, embeddings)
         qa_chain = RetrievalQA.from_chain_type(
             llm=llm,
@@ -182,36 +178,8 @@ async def fact_check(request: FactCheckRequest):
 
         response = qa_chain.invoke({"query": news_text})
         result = parse_response(response["result"])
+
         return result
-
-    except Exception as e:
-        return {"error": str(e)}
-
-@app.post("/extension")
-async def extension(request: ExtensionFactCheckRequest):
-    try:
-        query = top_4_keywords_string(request.text)
-        raw_news = get_new_data(query)
-        docs = json_to_documents(raw_news)
-
-        if not docs:
-            return {"error": "No relevant news articles found"}
-
-        vectorstore = FAISS.from_documents(docs, embeddings)
-        qa_chain = RetrievalQA.from_chain_type(
-            llm=llm,
-            retriever=vectorstore.as_retriever(),
-            return_source_documents=True,
-            chain_type="stuff",
-            chain_type_kwargs={"prompt": prompt_template}
-        )
-
-        response = qa_chain.invoke({"query": request.text})
-        result = parse_response(response["result"])
-        return {
-            "verdict": result["verdict"],
-            "explanation": result["explanation"]
-        }
 
     except Exception as e:
         return {"error": str(e)}
